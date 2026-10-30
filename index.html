@@ -1,0 +1,927 @@
+<!DOCTYPE html>
+<html lang="th" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>ESP32 Smart Controller & IoT Dashboard</title>
+  <meta name="description" content="โมเดิร์นแดชบอร์ดสไตล์ Apple Home สำหรับควบคุมบอร์ด ESP32 รีเลย์ 4 ช่อง เซนเซอร์ DHT22 และเซนเซอร์ตรวจจับสี TCS34725">
+  <meta name="theme-color" content="#f2f2f7">
+
+  <!-- Google Fonts: Inter & Prompt (Clean Apple iOS Typography) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Prompt:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
+  
+  <!-- Supabase JS Client for Cloud & GitHub Pages -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  
+  <!-- ESP Web Tools (WebSerial Flashing 0-100% Progress Bar) -->
+  <script type="module" src="https://unpkg.com/esp-web-tools@10/dist/web/install-button.js?module"></script>
+  
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="apple-home.css?v=1">
+  <link rel="stylesheet" href="schedule.css?v=20261030a">
+</head>
+<body>
+  <!-- Background Glow FX -->
+  <div class="bg-fx" aria-hidden="true">
+    <div class="glow-orb glow-top"></div>
+    <div class="glow-orb glow-bottom"></div>
+  </div>
+
+  <div class="app-container">
+    <!-- Header -->
+    <header class="app-header">
+      <div class="header-brand">
+        <div class="brand-icon">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="4" y="4" width="16" height="16" rx="2"/>
+            <rect x="9" y="9" width="6" height="6"/>
+            <line x1="9" y1="1" x2="9" y2="4"/>
+            <line x1="15" y1="1" x2="15" y2="4"/>
+            <line x1="9" y1="20" x2="9" y2="23"/>
+            <line x1="15" y1="20" x2="15" y2="23"/>
+            <line x1="20" y1="9" x2="23" y2="9"/>
+            <line x1="20" y1="14" x2="23" y2="14"/>
+            <line x1="1" y1="9" x2="4" y2="9"/>
+            <line x1="1" y1="14" x2="4" y2="14"/>
+          </svg>
+        </div>
+        <div>
+          <h1 class="brand-title">ESP32 Smart Controller</h1>
+          <p class="brand-subtitle">IoT Dashboard &bull; GitHub Pages + Supabase</p>
+        </div>
+      </div>
+
+      <div class="header-actions">
+        <!-- Live Connection Status Pill -->
+        <div id="connectionStatusBadge" class="status-pill status-fetching">
+          <span class="status-dot"></span>
+          <span id="connectionStatusText">กำลังเชื่อมต่อ...</span>
+        </div>
+
+        <!-- Theme Toggle Button -->
+        <button id="themeToggleBtn" class="icon-btn" aria-label="สลับโหมดมืด/สว่าง" title="สลับโหมดมืด/สว่าง">
+          <svg class="sun-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="5"></circle>
+            <line x1="12" y1="1" x2="12" y2="3"></line>
+            <line x1="12" y1="21" x2="12" y2="23"></line>
+            <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+            <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+            <line x1="1" y1="12" x2="3" y2="12"></line>
+            <line x1="21" y1="12" x2="23" y2="12"></line>
+            <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+            <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+          </svg>
+          <svg class="moon-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+          </svg>
+        </button>
+      </div>
+    </header>
+
+    <!-- Connection & Settings Bar -->
+    <section class="card settings-card" aria-labelledby="settingsHeading">
+      <div class="settings-header">
+        <div class="settings-title-group">
+          <h2 id="settingsHeading" class="section-title">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"></path>
+            </svg>
+            การเชื่อมต่อ (Cloud & Network)
+          </h2>
+          <span id="lastUpdated" class="last-updated">อัปเดตล่าสุด: กำลังโหลด...</span>
+        </div>
+        <div class="header-btn-row">
+          <button id="openFlasherModalBtn" class="btn btn-secondary btn-sm flasher-btn" type="button" title="คู่มือการต่อสายขาบอร์ด และติดตั้งโปรแกรมลงบอร์ด ESP32">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+            </svg>
+            <span>ลงโปรแกรม & ผังต่อสาย</span>
+          </button>
+          <button id="openWifiModalBtn" class="btn btn-secondary btn-sm wifi-cfg-btn" type="button" title="ตั้งค่า Wi-Fi ใหม่เมื่อย้ายสถานที่">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M5 12.55a11 11 0 0 1 14.08 0"></path>
+              <path d="M1.42 9a16 16 0 0 1 21.16 0"></path>
+              <path d="M8.53 16.11a6 6 0 0 1 6.95 0"></path>
+              <line x1="12" y1="20" x2="12.01" y2="20"></line>
+            </svg>
+            <span>ตั้งค่า Wi-Fi บอร์ด</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Mode Selector Tabs: Supabase Cloud vs Local IP -->
+      <div class="connection-tabs" style="grid-template-columns: 1fr 1fr;">
+        <button id="tabSupabase" class="conn-tab active" type="button">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"></path></svg>
+          ☁️ Cloud (Supabase)
+        </button>
+        <button id="tabLocal" class="conn-tab" type="button">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="8" rx="2" ry="2"></rect><rect x="2" y="14" width="20" height="8" rx="2" ry="2"></rect><line x1="6" y1="6" x2="6.01" y2="6"></line><line x1="6" y1="18" x2="6.01" y2="18"></line></svg>
+          🏠 Local IP
+        </button>
+      </div>
+
+      <div class="settings-body">
+        <!-- Panel 1: Supabase Cloud -->
+        <div id="panelSupabase" class="conn-panel active">
+          <!-- Hidden Config Fields -->
+          <div id="supabaseFieldsWrap" class="supabase-fields" style="display: none;">
+            <div class="input-wrapper mb-2">
+              <span class="input-prefix">URL:</span>
+              <input type="text" id="supabaseUrlInput" placeholder="https://your-project.supabase.co" spellcheck="false" autocomplete="off">
+            </div>
+            <div class="input-wrapper mb-2">
+              <span class="input-prefix">Key:</span>
+              <input type="password" id="supabaseKeyInput" placeholder="eyJhbGciOi... (Anon Public Key)" spellcheck="false" autocomplete="off">
+            </div>
+          </div>
+
+          <div class="ip-input-group mt-2">
+            <button id="saveSupabaseBtn" class="btn btn-primary flex-1">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+                <polyline points="17 21 17 13 7 13 7 21"></polyline>
+                <polyline points="7 3 7 8 15 8"></polyline>
+              </svg>
+              <span>เชื่อมต่อ Cloud</span>
+            </button>
+            <button id="cloudRefreshBtn" class="btn btn-secondary icon-only" title="ดึงข้อมูลจาก Cloud ทันที">
+              <svg class="refresh-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="23 4 23 10 17 10"></polyline>
+                <polyline points="1 20 1 14 7 14"></polyline>
+                <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
+              </svg>
+            </button>
+          </div>
+          <div style="text-align: right; margin-top: 0.35rem;">
+            <button type="button" onclick="const el=document.getElementById('supabaseFieldsWrap'); el.style.display=el.style.display==='none'?'block':'none';" style="background:none; border:none; color:var(--apple-text-muted); font-size:0.75rem; cursor:pointer; padding:0.2rem 0.4rem; text-decoration:underline;"></button>
+          </div>
+        </div>
+
+        <!-- Panel 2: Local IP -->
+        <div id="panelLocal" class="conn-panel" style="display:none;">
+          <div class="ip-input-group">
+            <div class="input-wrapper">
+              <span class="input-prefix">http://</span>
+              <input type="text" id="espIpInput" placeholder="192.168.1.50" value="192.168.1.47" spellcheck="false" autocomplete="off">
+            </div>
+            <button id="saveConnectBtn" class="btn btn-primary">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+                <polyline points="17 21 17 13 7 13 7 21"></polyline>
+                <polyline points="7 3 7 8 15 8"></polyline>
+              </svg>
+              <span>เชื่อมต่อ IP</span>
+            </button>
+            <button id="manualRefreshBtn" class="btn btn-secondary icon-only" title="ดึงข้อมูลใหม่ทันที">
+              <svg class="refresh-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="23 4 23 10 17 10"></polyline>
+                <polyline points="1 20 1 14 7 14"></polyline>
+                <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        <div class="settings-meta">
+          <div class="meta-item">
+            <span class="meta-label">ระบบส่งข้อมูล:</span>
+            <span id="syncModeLabel" class="badge-sm badge-neutral">Supabase Realtime (WebSockets)</span>
+          </div>
+          <div class="meta-item">
+            <span class="meta-label">สถานะ Cloud:</span>
+            <span id="pingValue" class="badge-sm badge-neutral">โหมดจำลอง</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Section 1: Relay Control (4 Channels) -->
+    <section class="section-container" aria-labelledby="relaysHeading">
+      <div class="section-header">
+        <div>
+          <h2 id="relaysHeading" class="section-title">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+            </svg>
+            สวิตช์ควบคุม 4 ช่อง
+          </h2>
+          <p class="section-desc">แตะเพื่อเปิด-ปิดสวิตช์ไฟหรืออุปกรณ์ไฟฟ้าแยกอิสระ</p>
+        </div>
+        <!-- Master Buttons -->
+        <div class="master-buttons">
+          <button id="masterAllOnBtn" class="btn btn-success-light">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10"></circle>
+              <line x1="12" y1="8" x2="12" y2="12"></line>
+              <line x1="12" y1="16" x2="12.01" y2="16"></line>
+            </svg>
+            เปิดทั้งหมด
+          </button>
+          <button id="masterAllOffBtn" class="btn btn-danger-light">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10"></circle>
+              <line x1="15" y1="9" x2="9" y2="15"></line>
+              <line x1="9" y1="9" x2="15" y2="15"></line>
+            </svg>
+            ปิดทั้งหมด
+          </button>
+        </div>
+      </div>
+
+      <!-- Relay Grid: 4 items (2x2 on desktop, stackable on mobile) -->
+      <div class="relay-grid">
+        <!-- Relay 1 -->
+        <div class="relay-card" id="relayCard-1">
+          <div class="relay-card-header">
+            <div class="relay-icon-wrapper" data-icon="light">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M9 18h6"></path>
+                <path d="M10 22h4"></path>
+                <path d="M12 2v1"></path>
+                <path d="M12 7a5 5 0 0 0-5 5c0 2.2 1.2 3.6 2.5 4.7.4.3.7.8.7 1.3h3.6c0-.5.3-1 .7-1.3 1.3-1.1 2.5-2.5 2.5-4.7a5 5 0 0 0-5-5z"></path>
+              </svg>
+            </div>
+            <div class="relay-info">
+              <span class="relay-badge">CH 1 (GPIO 16)</span>
+              <h3 class="relay-title">Relay 1</h3>
+              <span class="relay-subtitle">ไฟ Grow Light</span>
+            </div>
+            <div class="relay-status-pill" id="relayStatusText-1">OFF</div>
+          </div>
+          <div class="relay-card-footer">
+            <label class="switch-toggle" for="relaySwitch-1">
+              <input type="checkbox" id="relaySwitch-1" data-ch="1">
+              <span class="switch-slider">
+                <span class="switch-indicator"></span>
+              </span>
+            </label>
+          </div>
+        </div>
+
+        <!-- Relay 2 -->
+        <div class="relay-card" id="relayCard-2">
+          <div class="relay-card-header">
+            <div class="relay-icon-wrapper" data-icon="fan">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="3"></circle>
+                <path d="M12 9V3a3 3 0 0 1 3 3v3"></path>
+                <path d="M15 12h6a3 3 0 0 1-3 3h-3"></path>
+                <path d="M12 15v6a3 3 0 0 1-3-3v-3"></path>
+                <path d="M9 12H3a3 3 0 0 1 3-3h3"></path>
+              </svg>
+            </div>
+            <div class="relay-info">
+              <span class="relay-badge">CH 2 (GPIO 17)</span>
+              <h3 class="relay-title">Relay 2</h3>
+              <span class="relay-subtitle">ปั้ม Oxygen</span>
+            </div>
+            <div class="relay-status-pill" id="relayStatusText-2">OFF</div>
+          </div>
+          <div class="relay-card-footer">
+            <label class="switch-toggle" for="relaySwitch-2">
+              <input type="checkbox" id="relaySwitch-2" data-ch="2">
+              <span class="switch-slider">
+                <span class="switch-indicator"></span>
+              </span>
+            </label>
+          </div>
+        </div>
+
+        <!-- Relay 3 -->
+        <div class="relay-card" id="relayCard-3">
+          <div class="relay-card-header">
+            <div class="relay-icon-wrapper" data-icon="lamp">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M12 2v4"></path>
+                <path d="m4.93 10.93 2.83-2.83"></path>
+                <path d="M2 18h20"></path>
+                <path d="M20 18l-4-9H8l-4 9"></path>
+                <path d="M12 13v5"></path>
+              </svg>
+            </div>
+            <div class="relay-info">
+              <span class="relay-badge">CH 3 (GPIO 18)</span>
+              <h3 class="relay-title">Relay 3</h3>
+              <span class="relay-subtitle">อากาศออก</span>
+            </div>
+            <div class="relay-status-pill" id="relayStatusText-3">OFF</div>
+          </div>
+          <div class="relay-card-footer">
+            <label class="switch-toggle" for="relaySwitch-3">
+              <input type="checkbox" id="relaySwitch-3" data-ch="3">
+              <span class="switch-slider">
+                <span class="switch-indicator"></span>
+              </span>
+            </label>
+          </div>
+        </div>
+
+        <!-- Relay 4 -->
+        <div class="relay-card" id="relayCard-4">
+          <div class="relay-card-header">
+            <div class="relay-icon-wrapper" data-icon="plug">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M12 22v-5"></path>
+                <path d="M9 8V2"></path>
+                <path d="M15 2v6"></path>
+                <path d="M18 8v5a4 4 0 0 1-4 4h-4a4 4 0 0 1-4-4V8h12z"></path>
+              </svg>
+            </div>
+            <div class="relay-info">
+              <span class="relay-badge">CH 4 (GPIO 19)</span>
+              <h3 class="relay-title">Relay 4</h3>
+              <span class="relay-subtitle">ปลั๊กเสริม (Aux)</span>
+            </div>
+            <div class="relay-status-pill" id="relayStatusText-4">OFF</div>
+          </div>
+          <div class="relay-card-footer">
+            <label class="switch-toggle" for="relaySwitch-4">
+              <input type="checkbox" id="relaySwitch-4" data-ch="4">
+              <span class="switch-slider">
+                <span class="switch-indicator"></span>
+              </span>
+            </label>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Section 1.5: ตั้งเวลาเปิด-ปิดอัตโนมัติ (Schedule) -->
+    <section id="scheduleSection" class="section-container" aria-labelledby="scheduleHeading">
+      <div class="section-header">
+        <div>
+          <h2 id="scheduleHeading" class="section-title">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10"></circle>
+              <polyline points="12 6 12 12 16 14"></polyline>
+            </svg>
+            ตั้งเวลาเปิดอัตโนมัติ
+          </h2>
+          <p class="section-desc">ตั้งให้ไฟหรือปั๊มทำงานเองตามเวลา บอร์ดทำงานต่อได้แม้ปิดหน้าเว็บ (ใช้เวลาไทย UTC+7)</p>
+        </div>
+      </div>
+
+      <div class="sch-card">
+        <div id="scheduleNotice" class="sch-notice">
+          <strong>ต้องเพิ่มคอลัมน์ในฐานข้อมูลก่อน (ทำครั้งเดียว)</strong><br>
+          ยังไม่พบคอลัมน์ <b>schedule_text</b> ในตาราง esp32_devices ให้เปิด Supabase → SQL Editor แล้วรันคำสั่งนี้
+          <code>alter table public.esp32_devices add column if not exists schedule_text text not null default '';</code>
+          <button id="scheduleSqlCopy" type="button" class="btn btn-secondary btn-sm">คัดลอกคำสั่ง SQL</button>
+        </div>
+
+        <p id="scheduleSummary" class="sch-summary"></p>
+
+        <div id="scheduleList" class="sch-list"></div>
+        <div id="scheduleEmpty" class="sch-empty">ยังไม่มีตารางเวลา — เพิ่มกฎใหม่ได้ด้านล่าง</div>
+
+        <div class="sch-form">
+          <div class="sch-form-row">
+            <label class="sch-lbl" for="schChannel">ช่อง</label>
+            <select id="schChannel">
+              <option value="1">CH 1 — ไฟ Grow Light</option>
+              <option value="2" selected>CH 2 — ปั๊ม Oxygen</option>
+              <option value="3">CH 3 — อากาศออก</option>
+              <option value="4">CH 4 — ปลั๊กเสริม (Aux)</option>
+            </select>
+            <label class="sch-lbl" for="schType">แบบ</label>
+            <select id="schType">
+              <option value="I" selected>วนรอบ (เช่น ทุก 3 ชม. เปิด 10 นาที)</option>
+              <option value="D">ช่วงเวลารายวัน (เช่น 06:00 – 18:00)</option>
+            </select>
+          </div>
+
+          <div id="schIntervalFields" class="sch-form-row">
+            <span class="sch-lbl">ทุก</span>
+            <input id="schEvery" type="number" min="1" max="1440" value="3" inputmode="numeric">
+            <select id="schUnit">
+              <option value="h" selected>ชั่วโมง</option>
+              <option value="m">นาที</option>
+            </select>
+            <span class="sch-lbl">เปิดนาน</span>
+            <input id="schOnFor" type="number" min="1" max="1440" value="10" inputmode="numeric">
+            <span class="sch-lbl">นาที</span>
+          </div>
+
+          <div id="schDailyFields" class="sch-form-row" style="display:none;">
+            <span class="sch-lbl">เปิดตั้งแต่</span>
+            <input id="schStart" type="time" value="06:00">
+            <span class="sch-lbl">ถึง</span>
+            <input id="schEnd" type="time" value="18:00">
+          </div>
+
+          <div class="sch-form-row">
+            <button id="schAddBtn" type="button" class="btn btn-primary">เพิ่มกฎตารางเวลา</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Section 2: DHT22 Environmental Sensors -->
+    <section class="section-container" aria-labelledby="dhtHeading">
+      <div class="section-header">
+        <div>
+          <h2 id="dhtHeading" class="section-title">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M14 4v10.54a4 4 0 1 1-4 0V4a2 2 0 0 1 4 0Z"></path>
+            </svg>
+            สภาพแวดล้อม
+          </h2>
+          <p class="section-desc">ข้อมูลตรวจวัดอุณหภูมิและความชื้นสัมพัทธ์ในอากาศ</p>
+        </div>
+
+      </div>
+
+      <div class="sensor-grid">
+        <!-- Temperature Card -->
+        <div class="card sensor-card temp-card">
+          <div class="sensor-card-top">
+            <div class="sensor-meta">
+              <span class="sensor-label">TEMPERATURE</span>
+              <h3 class="sensor-name">อุณหภูมิ</h3>
+            </div>
+            <div class="sensor-icon-bubble temp-bubble">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M14 4v10.54a4 4 0 1 1-4 0V4a2 2 0 0 1 4 0Z"></path>
+              </svg>
+            </div>
+          </div>
+
+          <div class="sensor-card-center">
+            <div class="sensor-value-group">
+              <span id="tempValue" class="sensor-number">28.5</span>
+              <span class="sensor-unit">°C</span>
+            </div>
+            <div id="tempStatusBadge" class="sensor-status-badge badge-temp-warm">
+              สบายตัว
+            </div>
+          </div>
+
+          <!-- Progress bar indicator -->
+          <div class="sensor-card-bottom">
+            <div class="sensor-bar-bg">
+              <div id="tempBar" class="sensor-bar temp-fill" style="width: 57%;"></div>
+            </div>
+            <div class="sensor-range-labels">
+              <span>0°C</span>
+              <span>25°C</span>
+              <span>50°C</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Humidity Card -->
+        <div class="card sensor-card hum-card">
+          <div class="sensor-card-top">
+            <div class="sensor-meta">
+              <span class="sensor-label">HUMIDITY</span>
+              <h3 class="sensor-name">ความชื้นสัมพัทธ์</h3>
+            </div>
+            <div class="sensor-icon-bubble hum-bubble">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"></path>
+              </svg>
+            </div>
+          </div>
+
+          <div class="sensor-card-center">
+            <div class="sensor-value-group">
+              <span id="humValue" class="sensor-number">64.0</span>
+              <span class="sensor-unit">%</span>
+            </div>
+            <div id="humStatusBadge" class="sensor-status-badge badge-hum-normal">
+              เหมาะสม (Normal)
+            </div>
+          </div>
+
+          <!-- Progress bar indicator -->
+          <div class="sensor-card-bottom">
+            <div class="sensor-bar-bg">
+              <div id="humBar" class="sensor-bar hum-fill" style="width: 64%;"></div>
+            </div>
+            <div class="sensor-range-labels">
+              <span>0%</span>
+              <span>50%</span>
+              <span>100%</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Section 3: TCS34725 Color Sensor -->
+    <section class="section-container" aria-labelledby="colorHeading">
+      <div class="section-header">
+        <div>
+          <h2 id="colorHeading" class="section-title">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10"></circle>
+              <path d="M12 2a7 7 0 0 0-7 7c0 5 7 13 7 13s7-8 7-13a7 7 0 0 0-7-7z"></path>
+            </svg>
+            ตรวจจับสี
+          </h2>
+          <p class="section-desc">อ่านค่าเฉดสีจริงจากเซนเซอร์ RGB พร้อมโค้ด HEX และความเข้มแสง Clear</p>
+        </div>
+        <div class="color-header-actions" style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
+          <!-- Sensor LED Toggle -->
+          <label class="sensor-led-pill" style="display:inline-flex; align-items:center; gap:8px; cursor:pointer; font-size:0.85rem; font-weight:600; padding:6px 14px; background:var(--bg-glass); border:1px solid var(--border-color); border-radius:20px; box-shadow:var(--shadow-sm);">
+            <span>💡 ไฟ LED ส่องวัตถุ:</span>
+            <input type="checkbox" id="sensorLedToggle" checked style="accent-color: #3b82f6; width:16px; height:16px; cursor:pointer;">
+            <span id="sensorLedStatusText" style="color:#3b82f6; font-size:0.85rem; font-weight:700;">เปิด</span>
+          </label>
+
+          <!-- Demo color randomizer button for demo testing -->
+
+        </div>
+      </div>
+
+      <div class="color-sensor-card card">
+        <div class="color-layout">
+          <!-- Color Preview Box -->
+          <div class="color-preview-container">
+            <div id="colorPreviewBox" class="color-preview-box" style="background-color: #3b82f6;">
+              <div class="color-preview-overlay">
+                <span class="preview-tag">LIVE COLOR</span>
+                <span id="previewHexBadge" class="preview-hex-tag">#3B82F6</span>
+              </div>
+            </div>
+            <div class="color-action-row">
+              <button id="copyHexBtn" class="btn btn-primary btn-copy">
+                <svg class="copy-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                  <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                </svg>
+                <svg class="check-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:none;">
+                  <polyline points="20 6 9 17 4 12"></polyline>
+                </svg>
+                <span id="copyHexBtnText">คัดลอก HEX (<span id="btnHexLabel">#3B82F6</span>)</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Color Channel Breakdown -->
+          <div class="color-channels">
+            <!-- HEX Field -->
+            <div class="channel-row hex-row">
+              <div class="channel-label-group">
+                <span class="channel-code">HEX CODE</span>
+                <span id="hexCodeDisplay" class="hex-value-text">#3B82F6</span>
+              </div>
+              <span id="colorNameEstimate" class="badge-sm badge-color">น้ำเงิน / Blue</span>
+            </div>
+
+            <!-- RGB Channels -->
+            <div class="rgb-bars-container">
+              <!-- Red -->
+              <div class="rgb-channel-item">
+                <div class="rgb-header">
+                  <span class="rgb-dot dot-red"></span>
+                  <span class="rgb-name">Red (R)</span>
+                  <span id="valRed" class="rgb-num">59</span>
+                </div>
+                <div class="rgb-bar-bg">
+                  <div id="barRed" class="rgb-bar-fill fill-red" style="width: 23%;"></div>
+                </div>
+              </div>
+
+              <!-- Green -->
+              <div class="rgb-channel-item">
+                <div class="rgb-header">
+                  <span class="rgb-dot dot-green"></span>
+                  <span class="rgb-name">Green (G)</span>
+                  <span id="valGreen" class="rgb-num">130</span>
+                </div>
+                <div class="rgb-bar-bg">
+                  <div id="barGreen" class="rgb-bar-fill fill-green" style="width: 51%;"></div>
+                </div>
+              </div>
+
+              <!-- Blue -->
+              <div class="rgb-channel-item">
+                <div class="rgb-header">
+                  <span class="rgb-dot dot-blue"></span>
+                  <span class="rgb-name">Blue (B)</span>
+                  <span id="valBlue" class="rgb-num">246</span>
+                </div>
+                <div class="rgb-bar-bg">
+                  <div id="barBlue" class="rgb-bar-fill fill-blue" style="width: 96%;"></div>
+                </div>
+              </div>
+
+              <!-- Clear (Lux / Raw) -->
+              <div class="rgb-channel-item">
+                <div class="rgb-header">
+                  <span class="rgb-dot dot-clear"></span>
+                  <span class="rgb-name">Clear (C / Lux)</span>
+                  <span id="valClear" class="rgb-num">1,280</span>
+                </div>
+                <div class="rgb-bar-bg">
+                  <div id="barClear" class="rgb-bar-fill fill-clear" style="width: 60%;"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="app-footer">
+      <div class="footer-content">
+        <p>ESP32 IoT Dashboard &bull; Responsive Mobile-First Controller</p>
+      </div>
+    </footer>
+  </div>
+
+  <!-- Modal: Firmware Flasher & Wiring Guide -->
+  <div id="flasherModal" class="modal-backdrop" style="display: none;">
+    <div class="modal-card modal-lg">
+      <div class="modal-header">
+        <div class="modal-title-wrap">
+          <div class="modal-icon-pill" style="background: rgba(255, 149, 0, 0.12); color: var(--apple-orange);">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+            </svg>
+          </div>
+          <div>
+            <h3 class="modal-title">ติดตั้งโปรแกรม & ผังการต่อสาย ESP32</h3>
+            <p class="modal-subtitle">แผนผังต่อสายขาบอร์ด และระบบ Flash Firmware อัตโนมัติ</p>
+          </div>
+        </div>
+        <button id="closeFlasherModalBtn" class="modal-close-btn" type="button" aria-label="ปิด">&times;</button>
+      </div>
+
+      <!-- Tabs: Wiring Diagram vs Web Installer vs Arduino C++ -->
+      <div class="modal-tabs" style="grid-template-columns: repeat(3, 1fr);">
+        <button id="flasherTabWiring" class="modal-tab active" type="button">🔌 ผังการต่อสาย</button>
+        <button id="flasherTabInstall" class="modal-tab" type="button">⚡ ติดตั้งผ่านเว็บ</button>
+        <button id="flasherTabCode" class="modal-tab" type="button">💻 โค้ด C++ (INO)</button>
+      </div>
+
+      <!-- Tab 1: Pinout & Wiring Diagram -->
+      <div id="flasherPanelWiring" class="modal-panel active">
+        <div class="wiring-guide-table">
+          <div class="wiring-group-title">⚡ 1. รีเลย์ 4 ช่อง (Relay Module 4CH - Active LOW)</div>
+          <div class="pin-row">
+            <span class="pin-badge pin-esp">GPIO 16</span>
+            <span class="pin-arrow">&rarr;</span>
+            <span class="pin-label">Relay IN 1 (ไฟ Grow Light)</span>
+          </div>
+          <div class="pin-row">
+            <span class="pin-badge pin-esp">GPIO 17</span>
+            <span class="pin-arrow">&rarr;</span>
+            <span class="pin-label">Relay IN 2 (ปั๊ม Oxygen)</span>
+          </div>
+          <div class="pin-row">
+            <span class="pin-badge pin-esp">GPIO 18</span>
+            <span class="pin-arrow">&rarr;</span>
+            <span class="pin-label">Relay IN 3 (อากาศออก Exhaust)</span>
+          </div>
+          <div class="pin-row">
+            <span class="pin-badge pin-esp">GPIO 19</span>
+            <span class="pin-arrow">&rarr;</span>
+            <span class="pin-label">Relay IN 4 (ปลั๊กเสริม Aux)</span>
+          </div>
+          <div class="pin-row">
+            <span class="pin-badge pin-pwr">5V / VCC</span>
+            <span class="pin-arrow">&rarr;</span>
+            <span class="pin-label">VCC ของบอร์ดรีเลย์</span>
+          </div>
+          <div class="pin-row">
+            <span class="pin-badge pin-gnd">GND</span>
+            <span class="pin-arrow">&rarr;</span>
+            <span class="pin-label">GND (กราวด์ร่วม)</span>
+          </div>
+
+          <div class="wiring-group-title mt-3">🌡️ 2. เซนเซอร์วัดอุณหภูมิและความชื้น (DHT11 / DHT22)</div>
+          <div class="pin-row">
+            <span class="pin-badge pin-esp">GPIO 4</span>
+            <span class="pin-arrow">&rarr;</span>
+            <span class="pin-label">ขา DATA / OUT ของเซนเซอร์ DHT</span>
+          </div>
+          <div class="pin-row">
+            <span class="pin-badge pin-pwr">3.3V</span>
+            <span class="pin-arrow">&rarr;</span>
+            <span class="pin-label">VCC ของเซนเซอร์</span>
+          </div>
+          <div class="pin-row">
+            <span class="pin-badge pin-gnd">GND</span>
+            <span class="pin-arrow">&rarr;</span>
+            <span class="pin-label">GND</span>
+          </div>
+
+          <div class="wiring-group-title mt-3">🎨 3. เซนเซอร์ตรวจจับสีจริง (TCS34725 I2C)</div>
+          <div class="pin-row">
+            <span class="pin-badge pin-esp">GPIO 21</span>
+            <span class="pin-arrow">&rarr;</span>
+            <span class="pin-label">ขา SDA (I2C Data)</span>
+          </div>
+          <div class="pin-row">
+            <span class="pin-badge pin-esp">GPIO 22</span>
+            <span class="pin-arrow">&rarr;</span>
+            <span class="pin-label">ขา SCL (I2C Clock)</span>
+          </div>
+          <div class="pin-row">
+            <span class="pin-badge pin-esp">GPIO 23</span>
+            <span class="pin-arrow">&rarr;</span>
+            <span class="pin-label">ขา LED (สวิตช์เปิด-ปิดไฟส่องสี)</span>
+          </div>
+          <div class="pin-row">
+            <span class="pin-badge pin-pwr">3.3V</span>
+            <span class="pin-arrow">&rarr;</span>
+            <span class="pin-label">VIN / 3V3</span>
+          </div>
+          <div class="pin-row">
+            <span class="pin-badge pin-gnd">GND</span>
+            <span class="pin-arrow">&rarr;</span>
+            <span class="pin-label">GND</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tab 2: Web Installer (ESP Web Tools 0-100% Progress Bar) -->
+      <div id="flasherPanelInstall" class="modal-panel" style="display: none;">
+        <div class="installer-card">
+          <h4>🚀 ติดตั้งเฟิร์มแวร์ลงบอร์ด ESP32 ผ่านเบราว์เซอร์</h4>
+          <p>ระบบจะเชื่อมต่อสาย USB, เลือกรุ่นบอร์ด, ล้าง Flash และเบิร์นโปรแกรมพร้อมแสดงแถบโหลด 0% &rarr; 100% ให้ทันที</p>
+
+          <div class="install-action-box my-3">
+            <!-- ESP Web Tools Official Install Button -->
+            <esp-web-install-button manifest="manifest.json">
+              <button slot="activate" class="btn btn-primary btn-lg w-100">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+                </svg>
+                <span>กดเพื่อเริ่มติดตั้งลงบอร์ด (Install Firmware)</span>
+              </button>
+              <span slot="unsupported">เบราว์เซอร์นี้ไม่รองรับ WebSerial กรุณาใช้ Google Chrome หรือ Microsoft Edge บนคอมพิวเตอร์</span>
+              <span slot="not-allowed">กรุณาอนุญาตการเข้าถึงพอร์ต Serial เพื่อเบิร์นบอร์ด</span>
+            </esp-web-install-button>
+          </div>
+
+          <div class="installer-steps-hint">
+            <div class="hint-item">
+              <span class="hint-num">1</span>
+              <span>เสียบสาย USB ระหว่างคอมกับบอร์ด ESP32</span>
+            </div>
+            <div class="hint-item">
+              <span class="hint-num">2</span>
+              <span>กดปุ่ม Install แล้วเลือกพอร์ต COM ของบอร์ด (เช่น USB-SERIAL CH340 / CP210x)</span>
+            </div>
+            <div class="hint-item">
+              <span class="hint-num">3</span>
+              <span>ระบบจะแสดงแถบ Progress Bar กำลังโหลดกี่ % จนครบ 100% พร้อมใช้งานทันที</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tab 3: Arduino IDE C++ Code -->
+      <div id="flasherPanelCode" class="modal-panel" style="display: none;">
+        <div class="code-view-card">
+          <div class="d-flex justify-between align-center mb-2">
+            <div>
+              <strong>ไฟล์: esp32_supabase.ino (C++)</strong>
+              <div class="text-muted text-xs">เวอร์ชันล่าสุด: รองรับ Supabase Realtime + Wi-Fi Preferences + Smart Hotspot</div>
+            </div>
+            <div class="d-flex gap-2">
+              <button id="copyInoBtn" class="btn btn-secondary btn-sm" type="button">📋 คัดลอกโค้ดทั้งหมด</button>
+              <a href="esp32_supabase.ino" download="esp32_supabase.ino" class="btn btn-primary btn-sm">💾 ดาวน์โหลด .ino</a>
+            </div>
+          </div>
+          <pre class="ino-code-preview" id="inoCodePreview">กำลังโหลดโค้ด...</pre>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Wi-Fi Config (Web Serial & Smart Hotspot) -->
+  <div id="wifiModal" class="modal-backdrop" style="display: none;">
+    <div class="modal-card">
+      <div class="modal-header">
+        <div class="modal-title-wrap">
+          <div class="modal-icon-pill">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M5 12.55a11 11 0 0 1 14.08 0"></path>
+              <path d="M1.42 9a16 16 0 0 1 21.16 0"></path>
+              <path d="M8.53 16.11a6 6 0 0 1 6.95 0"></path>
+              <line x1="12" y1="20" x2="12.01" y2="20"></line>
+            </svg>
+          </div>
+          <div>
+            <h3 class="modal-title">ตั้งค่า Wi-Fi สำหรับ ESP32</h3>
+            <p class="modal-subtitle">แก้ปัญหาเมื่อย้ายสถานที่ หรือบอร์ดหลุดจาก Wi-Fi เดิม</p>
+          </div>
+        </div>
+        <button id="closeWifiModalBtn" class="modal-close-btn" type="button" aria-label="ปิด">&times;</button>
+      </div>
+
+      <!-- Modal Tabs: Web Serial vs Hotspot -->
+      <div class="modal-tabs">
+        <button id="modalTabSerial" class="modal-tab active" type="button">🔌 ผ่านสาย USB (คอม)</button>
+        <button id="modalTabHotspot" class="modal-tab" type="button">📱 ผ่านมือถือ (Smart Hotspot)</button>
+      </div>
+
+      <!-- Tab 1: Web Serial API -->
+      <div id="modalPanelSerial" class="modal-panel active">
+        <div class="serial-status-bar">
+          <span class="status-dot" id="serialStatusDot"></span>
+          <span id="serialStatusText">สถานะ: ยังไม่ได้เชื่อมต่อสาย USB</span>
+        </div>
+
+        <div class="mb-3">
+          <button id="connectSerialBtn" class="btn btn-primary w-100" type="button">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="2" y="2" width="20" height="8" rx="2" ry="2"></rect>
+              <rect x="2" y="14" width="20" height="8" rx="2" ry="2"></rect>
+              <line x1="6" y1="6" x2="6.01" y2="6"></line>
+              <line x1="6" y1="18" x2="6.01" y2="18"></line>
+            </svg>
+            <span id="connectSerialBtnText">เชื่อมต่อพอร์ต USB (COM Port)</span>
+          </button>
+        </div>
+
+        <!-- Serial Config Controls (enabled when connected) -->
+        <div id="serialControlsWrap" style="opacity: 0.5; pointer-events: none;">
+          <div class="mb-2">
+            <div class="d-flex justify-between align-center mb-1">
+              <label class="input-label" for="serialSsidSelect">เลือก Wi-Fi รอบตัว (2.4GHz):</label>
+              <button id="scanWifiBtn" class="btn-link" type="button">🔍 สแกน Wi-Fi ใหม่</button>
+            </div>
+            <select id="serialSsidSelect" class="form-select">
+              <option value="">-- กรุณากดสแกนหา Wi-Fi --</option>
+            </select>
+          </div>
+
+          <div class="mb-3">
+            <label class="input-label" for="serialWifiPass">รหัสผ่าน Wi-Fi:</label>
+            <div class="input-wrapper">
+              <input type="password" id="serialWifiPass" placeholder="กรอกรหัสผ่าน Wi-Fi (ถ้ามี)">
+            </div>
+          </div>
+
+          <button id="sendWifiBtn" class="btn btn-primary w-100" type="button">
+            <span>🚀 ส่งค่าให้ ESP32 บันทึกและเชื่อมต่อ</span>
+          </button>
+        </div>
+
+        <!-- Serial Live Terminal -->
+        <div class="serial-terminal-wrap mt-3">
+          <div class="terminal-header">
+            <span>Terminal Live Feedback</span>
+            <button id="clearTerminalBtn" class="terminal-clear" type="button">ล้าง</button>
+          </div>
+          <pre id="serialLog" class="serial-terminal">พร้อมเชื่อมต่อผ่าน Web Serial API (115200 baud)...</pre>
+        </div>
+      </div>
+
+      <!-- Tab 2: Smart Hotspot Instructions -->
+      <div id="modalPanelHotspot" class="modal-panel" style="display: none;">
+        <div class="hotspot-guide-card">
+          <div class="guide-step">
+            <div class="step-badge">1</div>
+            <div class="step-content">
+              <strong>เมื่อบอร์ดหลุดจาก Wi-Fi เดิม</strong>
+              <p>บอร์ดจะเปิด Hotspot ตัวเองอัตโนมัติภายใน 10 วินาที ชื่อ Wi-Fi:</p>
+              <div class="code-pill">📡 ESP32-Smart-Setup</div>
+            </div>
+          </div>
+
+          <div class="guide-step">
+            <div class="step-badge">2</div>
+            <div class="step-content">
+              <strong>เชื่อมต่อด้วยมือถือหรือแท็บเล็ต</strong>
+              <p>เปิด Wi-Fi บนมือถือแล้วกดเชื่อมต่อไปที่ <code>ESP32-Smart-Setup</code></p>
+            </div>
+          </div>
+
+          <div class="guide-step">
+            <div class="step-badge">3</div>
+            <div class="step-content">
+              <strong>หน้าต่างตั้งค่าจะเด้งขึ้นมาทันที</strong>
+              <p>หากไม่เด้ง ให้เปิดเบราว์เซอร์แล้วพิมพ์:</p>
+              <div class="code-pill">🌐 http://192.168.4.1</div>
+            </div>
+          </div>
+
+          <div class="guide-step">
+            <div class="step-badge">4</div>
+            <div class="step-content">
+              <strong>เลือก Wi-Fi ใหม่และใส่รหัสผ่าน</strong>
+              <p>กด Save บอร์ดจะบันทึกจำลง Flash Memory ถาวร แล้วเชื่อมต่อ Wi-Fi ทันทีโดยไม่ต้องใช้คอมหรือสาย USB ครับ!</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Container -->
+  <div id="toastContainer" class="toast-container" aria-live="polite"></div>
+
+  <script src="app.js?v=20261030a"></script>
+  <script src="schedule.js?v=20261030a"></script>
+</body>
+</html>

@@ -1,0 +1,129 @@
+/* ระบบตั้งเวลาเปิด-ปิดรีเลย์อัตโนมัติ — ใช้ตัวแปรสีเดียวกับ apple-home.css */
+
+.sch-card {
+  background: var(--apple-card, var(--bg-card, #fff));
+  border: 1px solid var(--apple-border, var(--border-color, rgba(0,0,0,.06)));
+  border-radius: var(--radius-card, 22px);
+  padding: 16px;
+  box-shadow: var(--shadow-card, none);
+}
+
+.sch-summary {
+  margin: 0 0 12px;
+  font-size: 0.82rem;
+  color: var(--apple-text-secondary, var(--text-secondary, #6e6e73));
+  line-height: 1.5;
+}
+
+.sch-notice {
+  display: none;
+  margin: 0 0 14px;
+  padding: 12px 14px;
+  border-radius: 14px;
+  background: var(--apple-orange-soft, rgba(255,149,0,.12));
+  border: 1px solid rgba(255,149,0,.35);
+  color: var(--apple-text-primary, var(--text-primary, #1d1d1f));
+  font-size: 0.82rem;
+  line-height: 1.5;
+}
+.sch-notice code {
+  display: block;
+  margin: 8px 0;
+  padding: 8px 10px;
+  border-radius: 10px;
+  background: rgba(0,0,0,.06);
+  font-size: 0.74rem;
+  overflow-x: auto;
+  white-space: pre-wrap;
+  word-break: break-all;
+}
+
+.sch-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 14px; }
+
+.sch-empty {
+  padding: 14px;
+  text-align: center;
+  font-size: 0.85rem;
+  color: var(--apple-text-muted, var(--text-muted, #86868b));
+  border: 1px dashed var(--apple-border, rgba(0,0,0,.12));
+  border-radius: 14px;
+}
+
+.sch-rule {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 14px;
+  background: var(--apple-segmented, rgba(120,120,128,.12));
+}
+.sch-rule.is-disabled { opacity: 0.55; }
+
+.sch-ch {
+  flex: 0 0 auto;
+  padding: 4px 8px;
+  border-radius: 8px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: .03em;
+  background: var(--apple-blue-soft, rgba(0,113,227,.1));
+  color: var(--apple-blue, #0071e3);
+}
+
+.sch-body { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.sch-body strong { font-size: 0.9rem; color: var(--apple-text-primary, var(--text-primary, #1d1d1f)); }
+.sch-body span { font-size: 0.78rem; color: var(--apple-text-secondary, var(--text-secondary, #6e6e73)); }
+
+.sch-live {
+  flex: 0 0 auto;
+  padding: 3px 9px;
+  border-radius: 999px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  background: rgba(120,120,128,.16);
+  color: var(--apple-text-secondary, #6e6e73);
+}
+.sch-live.is-on {
+  background: var(--apple-green-soft, rgba(52,199,89,.12));
+  color: var(--apple-green, #34c759);
+}
+
+.sch-del {
+  flex: 0 0 auto;
+  width: 28px;
+  height: 28px;
+  border: none;
+  border-radius: 50%;
+  background: var(--apple-red-soft, rgba(255,59,48,.12));
+  color: var(--apple-red, #ff3b30);
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
+.sch-form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding-top: 12px;
+  border-top: 1px solid var(--apple-border, rgba(0,0,0,.06));
+}
+.sch-form-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.sch-form label.sch-lbl { font-size: 0.78rem; color: var(--apple-text-secondary, #6e6e73); }
+
+.sch-form select,
+.sch-form input[type="time"],
+.sch-form input[type="number"] {
+  padding: 9px 10px;
+  border: 1px solid var(--apple-border, rgba(0,0,0,.12));
+  border-radius: var(--radius-input, 12px);
+  background: var(--apple-bg-subtle, #fff);
+  color: var(--apple-text-primary, #1d1d1f);
+  font-size: 0.9rem;
+  font-family: inherit;
+}
+.sch-form input[type="number"] { width: 76px; }
+
+@media (max-width: 480px) {
+  .sch-rule { flex-wrap: wrap; }
+  .sch-body { flex-basis: 60%; }
+}
