@@ -591,6 +591,8 @@ async function fetchSupabaseData(showNotification = false) {
 function applyDeviceDataFromSupabase(dev) {
   // ส่งข้อมูลให้ระบบตั้งเวลา (schedule.js) อ่านคอลัมน์ schedule_text
   if (window.ScheduleUI) window.ScheduleUI.onCloudData(dev);
+  // ส่งข้อมูลให้ระบบรอบเพาะเลี้ยง/เฟส PSB (phase.js) อ่านค่าสีและคอลัมน์ batch_*
+  if (window.PhaseUI) window.PhaseUI.onCloudData(dev);
 
   const now = Date.now();
 

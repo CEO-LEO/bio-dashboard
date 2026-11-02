@@ -21,6 +21,7 @@
   <link rel="stylesheet" href="style.css">
   <link rel="stylesheet" href="apple-home.css?v=1">
   <link rel="stylesheet" href="schedule.css?v=20261030a">
+  <link rel="stylesheet" href="phase.css?v=20261102a">
 </head>
 <body>
   <!-- Background Glow FX -->
@@ -416,6 +417,96 @@
             <button id="schAddBtn" type="button" class="btn btn-primary">เพิ่มกฎตารางเวลา</button>
           </div>
         </div>
+      </div>
+    </section>
+
+    <!-- Section 1.6: รอบเพาะเลี้ยง + เฟส PSB จากระดับสี (Phase) -->
+    <section id="phaseSection" class="section-container" aria-labelledby="phaseHeading">
+      <div class="section-header">
+        <div>
+          <h2 id="phaseHeading" class="section-title">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M12 2v6"></path>
+              <path d="M5 12a7 7 0 0 0 14 0c0-3-3-6-7-10-4 4-7 7-7 10z"></path>
+            </svg>
+            รอบเพาะเลี้ยง และเฟส PSB
+          </h2>
+          <p class="section-desc">ติดตามอายุรอบและประมาณเฟสจุลินทรีย์สังเคราะห์แสงจากระดับสี — เป็นค่าประมาณการ ไม่ใช่ค่าที่วัดตรง</p>
+        </div>
+      </div>
+
+      <div class="ph-card">
+        <div id="phaseNotice" class="ph-notice">
+          <strong>ต้องเพิ่มคอลัมน์/ตารางในฐานข้อมูลก่อน (ทำครั้งเดียว)</strong><br>
+          ยังไม่พบคอลัมน์ <b>batch_started_at, batch_name</b> ใน esp32_devices หรือตาราง <b>batch_color_log</b> ให้เปิด Supabase → SQL Editor แล้วรันไฟล์ <b>phase.sql</b> (ปุ่มด้านล่างคัดลอกฉบับย่อ):
+          <code>alter table public.esp32_devices add column if not exists batch_started_at timestamptz;
+alter table public.esp32_devices add column if not exists batch_name text not null default '';
+create table if not exists public.batch_color_log (...);</code>
+          <button id="phaseSqlCopy" type="button" class="btn btn-secondary btn-sm">คัดลอกคำสั่ง SQL</button>
+        </div>
+
+        <div class="ph-row ph-batch-form">
+          <input id="phBatchNameInput" type="text" maxlength="60" placeholder="ชื่อรอบ เช่น PSB ถัง A" aria-label="ชื่อรอบเพาะเลี้ยง">
+          <button id="phStartBtn" type="button" class="btn btn-primary">เริ่มรอบเพาะเลี้ยง</button>
+          <button id="phEndBtn" type="button" class="btn btn-secondary" disabled>จบรอบ</button>
+        </div>
+
+        <div class="ph-info">
+          <div class="ph-stat"><span>ชื่อรอบ</span><strong id="phBatchName">ยังไม่ได้เริ่มรอบ</strong></div>
+          <div class="ph-stat"><span>เริ่มเมื่อ</span><strong id="phBatchStart">-</strong></div>
+          <div class="ph-stat"><span>เวลาที่ผ่านไป</span><strong id="phElapsed">-</strong></div>
+        </div>
+
+        <div class="ph-phase">
+          <div class="ph-phase-title">
+            <strong id="phPhaseName">ยังไม่เริ่มรอบ</strong>
+            <span id="phEstimateBadge" class="ph-estimate">ประมาณการ</span>
+          </div>
+          <p id="phPhaseMode"></p>
+        </div>
+
+        <div class="ph-timeline" aria-label="เส้นเวลา 5 เฟส (ประมาณการ)">
+          <div class="ph-step"><b>1</b>เริ่มต้น/<br>ปรับตัว</div>
+          <div class="ph-step"><b>2</b>เติบโต</div>
+          <div class="ph-step"><b>3</b>พร้อมใช้</div>
+          <div class="ph-step"><b>4</b>คงที่</div>
+          <div class="ph-step"><b>5</b>เสื่อม/<br>ตรวจสอบ</div>
+        </div>
+        <p class="ph-caption">ตำแหน่งบนเส้นเวลาเป็นเพียงประมาณการจากสีและเวลา</p>
+
+        <div class="ph-color">
+          <div id="phSwatch" class="ph-swatch" title="ยังไม่มีค่าสี"></div>
+          <div class="ph-color-stats">
+            <div class="ph-stat"><span>ความแดง (redness)</span><strong id="phRedness">-</strong></div>
+            <div class="ph-stat"><span>Hue</span><strong id="phHue">-</strong></div>
+            <div class="ph-stat"><span>อุณหภูมิ</span><strong id="phTemp">-</strong></div>
+          </div>
+        </div>
+
+        <div class="ph-row ph-marks">
+          <span class="ph-lbl">มาร์กสีปัจจุบันเพื่อปรับเทียบ (บันทึกลงประวัติทันที):</span>
+          <button type="button" class="btn btn-secondary btn-sm" data-ph-mark="ชมพูอ่อน" disabled>ชมพูอ่อน</button>
+          <button type="button" class="btn btn-secondary btn-sm" data-ph-mark="แดง" disabled>แดง</button>
+          <button type="button" class="btn btn-secondary btn-sm" data-ph-mark="แดงเข้ม/พร้อมใช้" disabled>แดงเข้ม/พร้อมใช้</button>
+          <button type="button" class="btn btn-secondary btn-sm" data-ph-mark="ซีด/ผิดปกติ" disabled>ซีด/ผิดปกติ</button>
+        </div>
+
+        <details class="ph-settings">
+          <summary>ตั้งค่าช่วงวันของเฟส (โหมดสำรองตามเวลา)</summary>
+          <div class="ph-row">
+            <span class="ph-lbl">เฟส 1 ถึงวันที่</span>
+            <input id="phCfg1" type="number" min="0" max="365" inputmode="numeric">
+            <span class="ph-lbl">เฟส 2 ถึงวันที่</span>
+            <input id="phCfg2" type="number" min="0" max="365" inputmode="numeric">
+            <span class="ph-lbl">เฟส 3 ถึงวันที่</span>
+            <input id="phCfg3" type="number" min="0" max="365" inputmode="numeric">
+            <span class="ph-lbl">(หลังจากนั้น = เฟส 4)</span>
+          </div>
+          <div class="ph-row">
+            <button id="phCfgSave" type="button" class="btn btn-secondary btn-sm">บันทึกช่วงวัน</button>
+            <button id="phCfgReset" type="button" class="btn btn-secondary btn-sm">ค่าเริ่มต้น (2 / 5 / 15)</button>
+          </div>
+        </details>
       </div>
     </section>
 
@@ -923,5 +1014,6 @@
 
   <script src="app.js?v=20261030a"></script>
   <script src="schedule.js?v=20261030a"></script>
+  <script src="phase.js?v=20261102a"></script>
 </body>
 </html>
