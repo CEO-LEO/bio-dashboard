@@ -228,6 +228,7 @@
   var lastLogged = null;         // { r,g,b,c,t }
   var cloudHasBatchCols = null;
   var cloudHasLogTable = null;
+  var markBlockedReason = ''; // ไม่ว่าง = ปิดการมาร์ก/บันทึกสี (ตั้งโดย presence.js เมื่อบอร์ดออฟไลน์)
   var logTableChecked = false;
   var els = {};
 
@@ -325,6 +326,7 @@
   function insertLog(label) {
     var cl = client();
     if (!batch || !color) return false;
+    if (markBlockedReason) { toast(markBlockedReason, 'error', 3500); return false; }
     var row = {
       batch_started_at: batch.startedAt,
       color_r: color.r, color_g: color.g, color_b: color.b, color_c: color.c,
@@ -356,7 +358,7 @@
 
   // บันทึกอัตโนมัติ: ทุก 10 นาที เมื่อมีรอบ มีค่าสี และไม่ซ้ำค่าล่าสุดที่บันทึก
   function maybeAutoLog() {
-    if (!batch || !color || cloudHasLogTable === false || !isCloudMode()) return;
+    if (!batch || !color || cloudHasLogTable === false || !isCloudMode() || markBlockedReason) return;
     if (color.r === null || color.g === null || color.b === null) return;
     if (lastLogged && Date.now() - lastLogged.t < LOG_INTERVAL_MS) return;
     if (sameColorAsLast(color)) return;
@@ -467,7 +469,9 @@
     setText(els.elapsed, elapsed !== null ? fmtElapsed(elapsed) : '-');
     els.endBtn.disabled = !hasBatch;
     els.startBtn.textContent = hasBatch ? 'เริ่มรอบใหม่' : 'เริ่มรอบเพาะเลี้ยง';
-    Array.prototype.forEach.call(els.markBtns, function (btn) { btn.disabled = !hasBatch || !color; });
+    Array.prototype.forEach.call(els.markBtns, function (btn) { btn.disabled = !hasBatch || !color || !!markBlockedReason; });
+    setText(els.markNote, markBlockedReason);
+    els.markNote.style.display = markBlockedReason ? 'block' : 'none';
 
     var red = color ? redness(color.r, color.g, color.b) : null;
     var hu = color ? hue(color.r, color.g, color.b) : null;
@@ -549,6 +553,7 @@
       temp: document.getElementById('phTemp'),
       steps: document.querySelectorAll('#phaseSection .ph-step'),
       markBtns: document.querySelectorAll('#phaseSection [data-ph-mark]'),
+      markNote: document.getElementById('phMarkNote'),
       cfg1: document.getElementById('phCfg1'),
       cfg2: document.getElementById('phCfg2'),
       cfg3: document.getElementById('phCfg3'),
@@ -582,8 +587,17 @@
     setInterval(function () { render(); maybeAutoLog(); }, 60000);
   }
 
+  // เรียกจาก presence.js: reason ไม่ว่าง = ปิดปุ่มมาร์กและการบันทึกสีอัตโนมัติ พร้อมแสดงเหตุผล
+  function setMarkingBlocked(reason) {
+    var next = reason ? String(reason) : '';
+    if (next === markBlockedReason) return;
+    markBlockedReason = next;
+    render();
+  }
+
   window.PhaseUI = {
     onCloudData: onCloudData,
+    setMarkingBlocked: setMarkingBlocked,
     // เปิดไว้ให้ทดสอบ
     _test: {
       redness: redness, hue: hue, median: median, swatchColor: swatchColor,

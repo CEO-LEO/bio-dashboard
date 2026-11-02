@@ -593,6 +593,8 @@ function applyDeviceDataFromSupabase(dev) {
   if (window.ScheduleUI) window.ScheduleUI.onCloudData(dev);
   // ส่งข้อมูลให้ระบบรอบเพาะเลี้ยง/เฟส PSB (phase.js) อ่านค่าสีและคอลัมน์ batch_*
   if (window.PhaseUI) window.PhaseUI.onCloudData(dev);
+  // ตัวบอกสถานะบอร์ดออนไลน์/ออฟไลน์ (presence.js) จาก updated_at
+  if (window.PresenceUI) window.PresenceUI.onCloudData(dev);
 
   const now = Date.now();
 

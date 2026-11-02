@@ -21,7 +21,8 @@
   <link rel="stylesheet" href="style.css">
   <link rel="stylesheet" href="apple-home.css?v=1">
   <link rel="stylesheet" href="schedule.css?v=20261030a">
-  <link rel="stylesheet" href="phase.css?v=20261102a">
+  <link rel="stylesheet" href="phase.css?v=20261102b">
+  <link rel="stylesheet" href="presence.css?v=20261102a">
 </head>
 <body>
   <!-- Background Glow FX -->
@@ -59,6 +60,12 @@
         <div id="connectionStatusBadge" class="status-pill status-fetching">
           <span class="status-dot"></span>
           <span id="connectionStatusText">กำลังเชื่อมต่อ...</span>
+        </div>
+
+        <!-- สถานะบอร์ดออนไลน์/ออฟไลน์ (presence.js) -->
+        <div id="presenceBadge" class="presence-pill presence-unknown" role="status" aria-live="polite" title="สถานะบอร์ดจากเวลาที่บอร์ดส่งข้อมูลเซนเซอร์ล่าสุด (last_seen_at)">
+          <span class="presence-dot"></span>
+          <span><b id="presenceLabel">ตรวจสอบบอร์ด...</b> <span id="presenceAge" class="presence-age"></span></span>
         </div>
 
         <!-- Theme Toggle Button -->
@@ -420,6 +427,12 @@
       </div>
     </section>
 
+    <!-- แถบเตือนค่าเก่า (presence.js) แสดงเมื่อบอร์ดช้า/ออฟไลน์ -->
+    <div id="presenceStaleBanner" class="presence-stale-banner" role="alert" style="display:none;">
+      <strong>ค่าที่แสดงอาจเป็นค่าเก่า</strong>
+      <span id="presenceStaleText"></span>
+    </div>
+
     <!-- Section 1.6: รอบเพาะเลี้ยง + เฟส PSB จากระดับสี (Phase) -->
     <section id="phaseSection" class="section-container" aria-labelledby="phaseHeading">
       <div class="section-header">
@@ -489,6 +502,7 @@ create table if not exists public.batch_color_log (...);</code>
           <button type="button" class="btn btn-secondary btn-sm" data-ph-mark="แดง" disabled>แดง</button>
           <button type="button" class="btn btn-secondary btn-sm" data-ph-mark="แดงเข้ม/พร้อมใช้" disabled>แดงเข้ม/พร้อมใช้</button>
           <button type="button" class="btn btn-secondary btn-sm" data-ph-mark="ซีด/ผิดปกติ" disabled>ซีด/ผิดปกติ</button>
+          <span id="phMarkNote" class="ph-mark-note" style="display:none;"></span>
         </div>
 
         <details class="ph-settings">
@@ -1014,6 +1028,7 @@ create table if not exists public.batch_color_log (...);</code>
 
   <script src="app.js?v=20261030a"></script>
   <script src="schedule.js?v=20261030a"></script>
-  <script src="phase.js?v=20261102a"></script>
+  <script src="phase.js?v=20261102b"></script>
+  <script src="presence.js?v=20261102b"></script>
 </body>
 </html>
