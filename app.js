@@ -47,6 +47,11 @@ const state = {
 
 // User interaction lockouts to prevent stale in-flight packets from bouncing switch states
 const lastUserRelayActionTime = [0, 0, 0, 0];
+
+// ชื่อช่องรีเลย์ "CH 1 — ไฟ Grow Light" มาจาก ScheduleUI (แหล่งเดียว) ถ้ายังโหลดไม่ทันใช้ "CH n"
+function relayLabel(channel) {
+  return window.ScheduleUI && window.ScheduleUI.channelLabel ? window.ScheduleUI.channelLabel(channel) : `CH ${channel}`;
+}
 let lastUserLedActionTime = 0;
 let lastTelemetrySyncTime = 0;
 
@@ -593,7 +598,7 @@ function applyDeviceDataFromSupabase(dev) {
   if (window.ScheduleUI) window.ScheduleUI.onCloudData(dev);
   // ส่งข้อมูลให้ระบบรอบเพาะเลี้ยง/เฟส PSB (phase.js) อ่านค่าสีและคอลัมน์ batch_*
   if (window.PhaseUI) window.PhaseUI.onCloudData(dev);
-  // ตัวบอกสถานะบอร์ดออนไลน์/ออฟไลน์ (presence.js) จาก updated_at
+  // ตัวบอกสถานะบอร์ดออนไลน์/ออฟไลน์ (presence.js) จาก last_seen_at
   if (window.PresenceUI) window.PresenceUI.onCloudData(dev);
 
   const now = Date.now();
@@ -656,7 +661,7 @@ async function handleRelayToggle(channel, targetState) {
   renderRelays();
 
   if (state.isDemoMode) {
-    showToast(`Relay ${channel}: ${targetState ? 'เปิด (ON)' : 'ปิด (OFF)'}`, targetState ? 'success' : 'info', 1800);
+    showToast(`${relayLabel(channel)}: ${targetState ? 'เปิด (ON)' : 'ปิด (OFF)'}`, targetState ? 'success' : 'info', 1800);
     return;
   }
 
@@ -670,12 +675,12 @@ async function handleRelayToggle(channel, targetState) {
         .eq('id', 1);
 
       if (error) throw error;
-      showToast(`[Cloud] Relay ${channel}: ${targetState ? 'เปิด (ON)' : 'ปิด (OFF)'}`, 'success');
+      showToast(`[Cloud] ${relayLabel(channel)}: ${targetState ? 'เปิด (ON)' : 'ปิด (OFF)'}`, 'success');
     } catch (err) {
       console.error('Supabase update failed:', err);
       state.relays[index] = previousState;
       renderRelays();
-      showToast(`อัปเดตสถานะ Relay ${channel} ไปยัง Cloud ไม่สำเร็จ`, 'error');
+      showToast(`อัปเดตสถานะ ${relayLabel(channel)} ไปยัง Cloud ไม่สำเร็จ`, 'error');
     }
     return;
   }
@@ -689,11 +694,11 @@ async function handleRelayToggle(channel, targetState) {
 
     const res = await fetch(url, { method: 'GET', signal });
     if (!res.ok) throw new Error('Switch request rejected');
-    showToast(`Relay ${channel}: ${targetState ? 'เปิด (ON)' : 'ปิด (OFF)'}`, 'success');
+    showToast(`${relayLabel(channel)}: ${targetState ? 'เปิด (ON)' : 'ปิด (OFF)'}`, 'success');
   } catch (err) {
     state.relays[index] = previousState;
     renderRelays();
-    showToast(`สั่งงาน Relay ${channel} ไม่สำเร็จ (ตรวจสอบบอร์ด)`, 'error');
+    showToast(`สั่งงาน ${relayLabel(channel)} ไม่สำเร็จ (ตรวจสอบบอร์ด)`, 'error');
   }
 }
 
@@ -996,7 +1001,7 @@ function updateConnectionBadge(overrideStatus) {
   if (status === 'cloud' || status === 'connected') {
     badge.classList.add('status-connected');
     if (state.connMode === 'supabase') {
-      text.textContent = 'Online';
+      text.textContent = 'Cloud เชื่อมต่อแล้ว';
     } else {
       text.textContent = 'เชื่อมต่อ IP แล้ว';
     }
@@ -1005,7 +1010,7 @@ function updateConnectionBadge(overrideStatus) {
     text.textContent = 'กำลังเชื่อมต่อ...';
   } else {
     badge.classList.add('status-disconnected');
-    text.textContent = 'ไม่พบการเชื่อมต่อ';
+    text.textContent = state.connMode === 'supabase' ? 'Cloud ไม่ได้เชื่อมต่อ' : 'ไม่พบการเชื่อมต่อ';
   }
 }
 

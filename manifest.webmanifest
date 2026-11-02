@@ -1,0 +1,17 @@
+{
+  "name": "Bio Liberate",
+  "short_name": "Bio",
+  "description": "ระบบควบคุมเครื่องเพาะเลี้ยงจุลินทรีย์",
+  "lang": "th",
+  "dir": "ltr",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "theme_color": "#f2f2f7",
+  "background_color": "#f2f2f7",
+  "icons": [
+    { "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" },
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ]
+}

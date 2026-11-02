@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512" role="img" aria-label="Bio Liberate">
+  <rect width="512" height="512" fill="#34c759"/>
+  <!-- ขวดทดลองทรงกรวย + ปากขวด -->
+  <rect x="196" y="96" width="120" height="26" rx="13" fill="#fff"/>
+  <path d="M220 116V232L140 372Q126 406 164 406H348Q386 406 372 372L292 232V116Z" fill="#fff"/>
+  <!-- จุลินทรีย์/ฟองในขวด -->
+  <circle cx="226" cy="346" r="20" fill="#34c759"/>
+  <circle cx="286" cy="322" r="13" fill="#34c759"/>
+  <circle cx="314" cy="366" r="15" fill="#34c759"/>
+  <circle cx="192" cy="384" r="9" fill="#34c759"/>
+  <circle cx="262" cy="384" r="8" fill="#34c759"/>
+  <circle cx="252" cy="274" r="9" fill="#34c759"/>
+</svg>

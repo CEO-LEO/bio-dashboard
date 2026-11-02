@@ -20,6 +20,8 @@
   var MAX_RULES = 16;
   var SQL = "alter table public.esp32_devices add column if not exists schedule_text text not null default '';";
 
+  var SCHEDULED_NOTE = 'ควบคุมโดยตารางเวลา — บอร์ดจะสั่งทับเมื่อถึงเวลา';
+
   var rules = [];
   var cloudHasColumn = null; // null = ยังไม่ทราบ
   var saveInFlightUntil = 0;
@@ -81,6 +83,19 @@
       return (epochMin % r.p1) < r.p2;
     }
     return false;
+  }
+
+  // ชื่อช่องที่ใช้ทั้งเว็บ (แหล่งเดียว): "CH 1 — ไฟ Grow Light" ; ช่องนอกช่วง 1-4 -> "CH n"
+  function channelLabel(ch) {
+    var n = parseInt(ch, 10);
+    return n >= 1 && n <= CH_NAMES.length ? 'CH ' + n + ' — ' + CH_NAMES[n - 1] : 'CH ' + ch;
+  }
+
+  // ช่องที่มีกฎตารางเวลาเปิดใช้อยู่ -> { 1: true, ... }
+  function controlledChannels(list) {
+    var out = {};
+    (list || []).forEach(function (r) { if (r.en) out[r.ch] = true; });
+    return out;
   }
 
   // ---------- ตัวช่วยแสดงผล ----------
@@ -237,13 +252,38 @@
     });
 
     // ช่องที่อยู่ภายใต้ตารางเวลา: บอกผู้ใช้ว่าการกดสวิตช์มือจะถูกทับเมื่อถึงเวลาถัดไป
-    var controlled = {};
-    rules.forEach(function (r) { if (r.en) controlled[r.ch] = true; });
+    var controlled = controlledChannels(rules);
+    renderRelayCards(controlled);
     var chs = Object.keys(controlled);
     els.summary.textContent = chs.length
       ? 'ช่องที่ทำงานตามตารางเวลา: ' + chs.map(function (c) { return 'CH ' + c; }).join(', ') +
         ' (สวิตช์มือยังกดได้ แต่จะถูกตารางเวลาสั่งทับเมื่อถึงเวลาเปลี่ยนสถานะถัดไป)'
       : 'ยังไม่มีช่องไหนใช้ตารางเวลา — ทุกช่องควบคุมด้วยมือ';
+  }
+
+  // การ์ดสวิตช์ในหน้าหลัก: ใส่ชื่อช่อง (ครั้งเดียวตอนเริ่ม)
+  function applyRelayNames() {
+    for (var n = 1; n <= CH_NAMES.length; n++) {
+      var title = document.getElementById('relayTitle-' + n);
+      if (title) title.textContent = channelLabel(n);
+      var sw = document.getElementById('relaySwitch-' + n);
+      if (sw) sw.setAttribute('aria-label', 'สวิตช์ ' + channelLabel(n));
+    }
+  }
+
+  // ป้าย "ควบคุมโดยตารางเวลา" บนการ์ดสวิตช์ของช่องที่มีกฎเปิดใช้ (ไม่ปิดการกดมือ)
+  function renderRelayCards(controlled) {
+    for (var n = 1; n <= CH_NAMES.length; n++) {
+      var card = document.getElementById('relayCard-' + n);
+      var sub = document.getElementById('relaySub-' + n);
+      var on = !!controlled[n];
+      if (card) card.classList.toggle('is-scheduled', on);
+      if (sub) {
+        sub.style.display = on ? 'block' : 'none';
+        sub.textContent = on ? SCHEDULED_NOTE : '';
+        sub.classList.toggle('relay-scheduled-note', on);
+      }
+    }
   }
 
   function updateFormVisibility() {
@@ -302,6 +342,7 @@
       onFor: document.getElementById('schOnFor'),
       addBtn: document.getElementById('schAddBtn')
     };
+    applyRelayNames(); // การ์ดสวิตช์อยู่นอกการ์ดตารางเวลา จึงทำก่อนเช็ก section
     if (!els.section) return;
 
     try { rules = parse(localStorage.getItem(LS_KEY) || ''); } catch (e) { rules = []; }
@@ -323,8 +364,11 @@
 
   window.ScheduleUI = {
     onCloudData: onCloudData,
+    // ชื่อช่อง (แหล่งเดียว) ให้ app.js และส่วนอื่นเรียกใช้
+    CH_NAMES: CH_NAMES,
+    channelLabel: channelLabel,
     // เปิดไว้ให้ทดสอบ
-    _test: { parse: parse, encode: encode, isActive: isActive, localEpochMinutes: localEpochMinutes, describe: describe, SQL: SQL }
+    _test: { controlledChannels: controlledChannels, parse: parse, encode: encode, isActive: isActive, localEpochMinutes: localEpochMinutes, describe: describe, SQL: SQL }
   };
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);

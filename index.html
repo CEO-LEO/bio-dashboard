@@ -3,9 +3,12 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>ESP32 Smart Controller & IoT Dashboard</title>
+  <title>Bio Liberate</title>
   <meta name="description" content="โมเดิร์นแดชบอร์ดสไตล์ Apple Home สำหรับควบคุมบอร์ด ESP32 รีเลย์ 4 ช่อง เซนเซอร์ DHT22 และเซนเซอร์ตรวจจับสี TCS34725">
   <meta name="theme-color" content="#f2f2f7">
+  <link rel="icon" href="icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="icon-192.png">
+  <link rel="manifest" href="manifest.webmanifest">
 
   <!-- Google Fonts: Inter & Prompt (Clean Apple iOS Typography) -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -20,7 +23,7 @@
   
   <link rel="stylesheet" href="style.css">
   <link rel="stylesheet" href="apple-home.css?v=1">
-  <link rel="stylesheet" href="schedule.css?v=20261030a">
+  <link rel="stylesheet" href="schedule.css?v=20261102b">
   <link rel="stylesheet" href="phase.css?v=20261102b">
   <link rel="stylesheet" href="presence.css?v=20261102a">
 </head>
@@ -50,8 +53,8 @@
           </svg>
         </div>
         <div>
-          <h1 class="brand-title">ESP32 Smart Controller</h1>
-          <p class="brand-subtitle">IoT Dashboard &bull; GitHub Pages + Supabase</p>
+          <h1 class="brand-title">Bio Liberate</h1>
+          <p class="brand-subtitle">ระบบควบคุมเครื่องเพาะเลี้ยงจุลินทรีย์</p>
         </div>
       </div>
 
@@ -254,8 +257,8 @@
             </div>
             <div class="relay-info">
               <span class="relay-badge">CH 1 (GPIO 16)</span>
-              <h3 class="relay-title">Relay 1</h3>
-              <span class="relay-subtitle">ไฟ Grow Light</span>
+              <h3 class="relay-title" id="relayTitle-1">CH 1</h3>
+              <span class="relay-subtitle" id="relaySub-1" style="display:none;"></span>
             </div>
             <div class="relay-status-pill" id="relayStatusText-1">OFF</div>
           </div>
@@ -283,8 +286,8 @@
             </div>
             <div class="relay-info">
               <span class="relay-badge">CH 2 (GPIO 17)</span>
-              <h3 class="relay-title">Relay 2</h3>
-              <span class="relay-subtitle">ปั้ม Oxygen</span>
+              <h3 class="relay-title" id="relayTitle-2">CH 2</h3>
+              <span class="relay-subtitle" id="relaySub-2" style="display:none;"></span>
             </div>
             <div class="relay-status-pill" id="relayStatusText-2">OFF</div>
           </div>
@@ -312,8 +315,8 @@
             </div>
             <div class="relay-info">
               <span class="relay-badge">CH 3 (GPIO 18)</span>
-              <h3 class="relay-title">Relay 3</h3>
-              <span class="relay-subtitle">อากาศออก</span>
+              <h3 class="relay-title" id="relayTitle-3">CH 3</h3>
+              <span class="relay-subtitle" id="relaySub-3" style="display:none;"></span>
             </div>
             <div class="relay-status-pill" id="relayStatusText-3">OFF</div>
           </div>
@@ -340,8 +343,8 @@
             </div>
             <div class="relay-info">
               <span class="relay-badge">CH 4 (GPIO 19)</span>
-              <h3 class="relay-title">Relay 4</h3>
-              <span class="relay-subtitle">ปลั๊กเสริม (Aux)</span>
+              <h3 class="relay-title" id="relayTitle-4">CH 4</h3>
+              <span class="relay-subtitle" id="relaySub-4" style="display:none;"></span>
             </div>
             <div class="relay-status-pill" id="relayStatusText-4">OFF</div>
           </div>
@@ -735,7 +738,7 @@ create table if not exists public.batch_color_log (...);</code>
     <!-- Footer -->
     <footer class="app-footer">
       <div class="footer-content">
-        <p>ESP32 IoT Dashboard &bull; Responsive Mobile-First Controller</p>
+        <p>Bio Liberate &bull; Responsive Mobile-First Controller</p>
       </div>
     </footer>
   </div>
@@ -1026,8 +1029,8 @@ create table if not exists public.batch_color_log (...);</code>
   <!-- Toast Container -->
   <div id="toastContainer" class="toast-container" aria-live="polite"></div>
 
-  <script src="app.js?v=20261030a"></script>
-  <script src="schedule.js?v=20261030a"></script>
+  <script src="app.js?v=20261102b"></script>
+  <script src="schedule.js?v=20261102b"></script>
   <script src="phase.js?v=20261102b"></script>
   <script src="presence.js?v=20261102b"></script>
 </body>

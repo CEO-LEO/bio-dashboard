@@ -127,3 +127,19 @@
   .sch-rule { flex-wrap: wrap; }
   .sch-body { flex-basis: 60%; }
 }
+
+/* การ์ดสวิตช์ของช่องที่มีกฎตารางเวลาเปิดใช้ (ยังกดมือได้ แต่บอร์ดจะสั่งทับเมื่อถึงเวลา) */
+.relay-card.is-scheduled {
+  box-shadow: inset 0 0 0 2px var(--apple-blue, #0071e3);
+}
+.relay-subtitle.relay-scheduled-note {
+  display: inline-block;
+  margin-top: 4px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 0.68rem;
+  font-weight: 600;
+  line-height: 1.4;
+  background: var(--apple-blue-soft, rgba(0,113,227,.1));
+  color: var(--apple-blue, #0071e3);
+}
