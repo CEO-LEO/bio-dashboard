@@ -600,6 +600,8 @@ function applyDeviceDataFromSupabase(dev) {
   if (window.PhaseUI) window.PhaseUI.onCloudData(dev);
   // ตัวบอกสถานะบอร์ดออนไลน์/ออฟไลน์ (presence.js) จาก last_seen_at
   if (window.PresenceUI) window.PresenceUI.onCloudData(dev);
+  // สูตรเพาะเลี้ยง (profiles.js): อุณหภูมิอากาศเทียบช่วงของระยะที่ใช้อยู่
+  if (window.ProfileUI) window.ProfileUI.onCloudData(dev);
 
   const now = Date.now();
 

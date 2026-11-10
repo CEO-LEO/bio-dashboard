@@ -26,6 +26,7 @@
   <link rel="stylesheet" href="schedule.css?v=20261102b">
   <link rel="stylesheet" href="phase.css?v=20261102b">
   <link rel="stylesheet" href="presence.css?v=20261102a">
+  <link rel="stylesheet" href="profiles.css?v=20261109a">
 </head>
 <body>
   <!-- Background Glow FX -->
@@ -357,6 +358,60 @@
             </label>
           </div>
         </div>
+      </div>
+    </section>
+
+    <!-- Section 1.4: สูตรเพาะเลี้ยง (Culture Profile) -->
+    <section id="profileSection" class="section-container" aria-labelledby="profileHeading">
+      <div class="section-header">
+        <div>
+          <h2 id="profileHeading" class="section-title">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M9 2h6"></path>
+              <path d="M10 2v6L5 18a2 2 0 0 0 2 3h10a2 2 0 0 0 2-3l-5-10V2"></path>
+            </svg>
+            สูตรเพาะเลี้ยง
+          </h2>
+          <p class="section-desc">เลือกสิ่งที่จะผลิต ระบบตั้งตารางไฟ/ลมให้ตามระยะ (บอร์ดทำงานต่อเองได้แม้ปิดเว็บ)</p>
+        </div>
+      </div>
+
+      <div class="pr-card">
+        <div class="pr-disclaimer">ตัวเลขในสูตรทั้งหมดเป็น<b>ค่าเริ่มต้นทั่วไปที่ยังไม่ได้ตรวจกับแหล่งอ้างอิง</b> ควรตรวจกับตำราหรือผู้เชี่ยวชาญก่อนใช้จริง และปรับได้ที่การ์ดตั้งเวลา การเตือนอุณหภูมิเป็นการเตือนเท่านั้น ไม่ได้ควบคุม และใช้อุณหภูมิอากาศจาก DHT (ไม่ใช่อุณหภูมิน้ำ)</div>
+
+        <p id="prCurrent" class="pr-current"></p>
+        <div id="prStageBanner" class="pr-stage-banner">
+          <span id="prStageBannerText"></span><br>
+          <button id="prStageSwitchBtn" type="button" class="btn btn-primary btn-sm">สลับตารางเวลาเป็นระยะนี้</button>
+        </div>
+        <p id="prTemp" class="pr-temp"></p>
+        <p id="prPhaseNote" class="pr-phase-note"></p>
+
+        <div class="pr-row">
+          <select id="prSelect" aria-label="เลือกสูตรเพาะเลี้ยง"></select>
+        </div>
+        <p id="prSci" class="pr-sci"></p>
+        <p id="prDesc" class="pr-desc"></p>
+        <div id="prStages" class="pr-stages"></div>
+
+        <div id="prExtraRow" class="pr-row" style="display:none;">
+          <label class="pr-lbl"><input id="prExtraLamp" type="checkbox"> มีหลอดเสริมที่ CH 4 (ใช้ในระยะกระตุ้น/เก็บเกี่ยว)</label>
+        </div>
+
+        <div class="pr-row">
+          <button id="prApplyBtn" type="button" class="btn btn-primary">ใช้สูตรนี้ (แทนที่ตารางเวลา)</button>
+          <button id="prRestoreBtn" type="button" class="btn btn-secondary" disabled>คืนตารางเวลาเดิม</button>
+          <button id="prForgetBtn" type="button" class="btn btn-secondary" style="display:none;">เลิกติดตามสูตร</button>
+        </div>
+
+        <details id="prDaysDetails" class="pr-days">
+          <summary>ปรับวันเริ่มต้นของแต่ละระยะ</summary>
+          <div id="prDaysBox" class="pr-row"></div>
+          <div class="pr-row">
+            <button id="prDaysSave" type="button" class="btn btn-secondary btn-sm">บันทึกวันเริ่มระยะ</button>
+            <button id="prDaysReset" type="button" class="btn btn-secondary btn-sm">ค่าเริ่มต้น</button>
+          </div>
+        </details>
       </div>
     </section>
 
@@ -1029,9 +1084,10 @@ create table if not exists public.batch_color_log (...);</code>
   <!-- Toast Container -->
   <div id="toastContainer" class="toast-container" aria-live="polite"></div>
 
-  <script src="app.js?v=20261102b"></script>
-  <script src="schedule.js?v=20261102b"></script>
-  <script src="phase.js?v=20261102b"></script>
-  <script src="presence.js?v=20261102b"></script>
+  <script src="app.js?v=20261109a"></script>
+  <script src="schedule.js?v=20261109a"></script>
+  <script src="phase.js?v=20261109a"></script>
+  <script src="presence.js?v=20261102d"></script>
+  <script src="profiles.js?v=20261109a"></script>
 </body>
 </html>

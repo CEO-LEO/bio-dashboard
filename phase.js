@@ -228,7 +228,8 @@
   var lastLogged = null;         // { r,g,b,c,t }
   var cloudHasBatchCols = null;
   var cloudHasLogTable = null;
-  var markBlockedReason = ''; // ไม่ว่าง = ปิดการมาร์ก/บันทึกสี (ตั้งโดย presence.js เมื่อบอร์ดออฟไลน์)
+  var markBlockedReason = ''; // ไม่ว่าง = ปิดการมาร์ก/บันทึกสี (รวมเหตุผลจากทุกแหล่ง: presence.js เมื่อบอร์ดออฟไลน์, profiles.js เมื่อสูตรไม่ใช่ PSB)
+  var markBlockers = {};      // แหล่ง -> เหตุผล
   var logTableChecked = false;
   var els = {};
 
@@ -587,17 +588,27 @@
     setInterval(function () { render(); maybeAutoLog(); }, 60000);
   }
 
-  // เรียกจาก presence.js: reason ไม่ว่าง = ปิดปุ่มมาร์กและการบันทึกสีอัตโนมัติ พร้อมแสดงเหตุผล
-  function setMarkingBlocked(reason) {
+  // เรียกจาก presence.js / profiles.js: reason ไม่ว่าง = ปิดปุ่มมาร์กและการบันทึกสีอัตโนมัติ พร้อมแสดงเหตุผล
+  // source แยกผู้เรียก เพื่อไม่ให้แหล่งหนึ่งล้างเหตุผลของอีกแหล่ง (ไม่ระบุ = 'presence')
+  function setMarkingBlocked(reason, source) {
+    var key = source || 'presence';
     var next = reason ? String(reason) : '';
-    if (next === markBlockedReason) return;
-    markBlockedReason = next;
+    if ((markBlockers[key] || '') === next) return;
+    if (next) markBlockers[key] = next; else delete markBlockers[key];
+    var keys = Object.keys(markBlockers);
+    markBlockedReason = keys.length ? markBlockers[keys[0]] : '';
     render();
+  }
+
+  // ให้ profiles.js อ่านรอบเพาะเลี้ยงปัจจุบัน (คัดลอก ไม่ให้แก้ค่าภายใน)
+  function getBatch() {
+    return batch ? { startedAt: batch.startedAt, name: batch.name } : null;
   }
 
   window.PhaseUI = {
     onCloudData: onCloudData,
     setMarkingBlocked: setMarkingBlocked,
+    getBatch: getBatch,
     // เปิดไว้ให้ทดสอบ
     _test: {
       redness: redness, hue: hue, median: median, swatchColor: swatchColor,

@@ -362,8 +362,26 @@
     setInterval(render, 15000); // รีเฟรชป้าย "กำลังเปิด/รอเวลา"
   }
 
+  // ---------- ให้ profiles.js ใช้ (สูตรเพาะเลี้ยงเขียนตารางเวลาผ่านทางนี้) ----------
+
+  function getRules() {
+    return rules.map(function (r) { return { ch: r.ch, type: r.type, p1: r.p1, p2: r.p2, en: r.en }; });
+  }
+
+  // แทนที่กฎทั้งหมดด้วย list ที่ให้มา ถ้ากฎใดไม่ผ่านการตรวจแบบเดียวกับที่บอร์ดใช้ จะไม่แก้อะไรเลยและคืน false
+  function replaceRules(list, okMessage) {
+    var clean = parse(encode(list || []));
+    if (clean.length !== (list || []).length) return false;
+    rules = clean;
+    save(okMessage);
+    return true;
+  }
+
   window.ScheduleUI = {
     onCloudData: onCloudData,
+    getRules: getRules,
+    replaceRules: replaceRules,
+    describeRule: describe,
     // ชื่อช่อง (แหล่งเดียว) ให้ app.js และส่วนอื่นเรียกใช้
     CH_NAMES: CH_NAMES,
     channelLabel: channelLabel,

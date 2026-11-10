@@ -1,0 +1,85 @@
+/* สูตรเพาะเลี้ยง — ใช้ตัวแปรสีเดียวกับ apple-home.css */
+
+.pr-card {
+  background: var(--apple-card, var(--bg-card, #fff));
+  border: 1px solid var(--apple-border, var(--border-color, rgba(0,0,0,.06)));
+  border-radius: var(--radius-card, 22px);
+  padding: 16px;
+  box-shadow: var(--shadow-card, none);
+}
+.pr-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-bottom: 12px; }
+.pr-card select {
+  padding: 9px 10px;
+  border: 1px solid var(--apple-border, rgba(0,0,0,.12));
+  border-radius: var(--radius-input, 12px);
+  background: var(--apple-bg-subtle, #fff);
+  color: var(--apple-text-primary, #1d1d1f);
+  font-size: 0.9rem;
+  font-family: inherit;
+  flex: 1 1 220px;
+  min-width: 0;
+}
+.pr-card input[type="number"] {
+  width: 64px;
+  padding: 8px 10px;
+  border: 1px solid var(--apple-border, rgba(0,0,0,.12));
+  border-radius: var(--radius-input, 12px);
+  background: var(--apple-bg-subtle, #fff);
+  color: var(--apple-text-primary, #1d1d1f);
+  font-family: inherit;
+}
+.pr-lbl { font-size: 0.78rem; color: var(--apple-text-secondary, #6e6e73); }
+.pr-sci { margin: 0 0 4px; font-size: 0.75rem; font-style: italic; color: var(--apple-text-muted, #86868b); }
+.pr-desc { margin: 0 0 12px; font-size: 0.85rem; line-height: 1.5; color: var(--apple-text-primary, #1d1d1f); }
+
+.pr-disclaimer {
+  margin: 0 0 12px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: var(--apple-orange-soft, rgba(255,149,0,.12));
+  font-size: 0.76rem;
+  line-height: 1.5;
+  color: var(--apple-text-primary, #1d1d1f);
+}
+
+.pr-stages { display: flex; flex-direction: column; gap: 8px; margin-bottom: 12px; }
+.pr-stage {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 10px 12px;
+  border-radius: 14px;
+  background: var(--apple-segmented, rgba(120,120,128,.12));
+}
+.pr-stage.is-current { outline: 2px solid var(--apple-blue, #0071e3); background: var(--apple-blue-soft, rgba(0,113,227,.1)); }
+.pr-stage strong { font-size: 0.88rem; color: var(--apple-text-primary, #1d1d1f); }
+.pr-stage span { font-size: 0.76rem; color: var(--apple-text-secondary, #6e6e73); line-height: 1.5; }
+
+.pr-current { margin: 0 0 8px; font-size: 0.82rem; font-weight: 600; color: var(--apple-text-primary, #1d1d1f); }
+.pr-temp {
+  display: none;
+  margin: 0 0 12px;
+  padding: 8px 12px;
+  border-radius: 12px;
+  background: var(--apple-green-soft, rgba(52,199,89,.12));
+  font-size: 0.78rem;
+  color: var(--apple-text-primary, #1d1d1f);
+}
+.pr-temp.is-warn { background: var(--apple-red-soft, rgba(255,59,48,.12)); }
+
+.pr-stage-banner, .pr-phase-note {
+  display: none;
+  margin: 0 0 12px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: var(--apple-orange-soft, rgba(255,149,0,.12));
+  border: 1px solid rgba(255,149,0,.35);
+  font-size: 0.8rem;
+  line-height: 1.5;
+  color: var(--apple-text-primary, #1d1d1f);
+}
+.pr-stage-banner button { margin-top: 6px; }
+
+.pr-days { margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--apple-border, rgba(0,0,0,.06)); }
+.pr-days summary { cursor: pointer; font-size: 0.82rem; color: var(--apple-text-secondary, #6e6e73); }
+.pr-days .pr-row { margin: 10px 0 0; }
