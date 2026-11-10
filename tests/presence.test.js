@@ -55,7 +55,7 @@ t('onCloudData ไม่ใช้ updated_at ตัดสินสถานะ (
     vm.createContext(sb);
     vm.runInContext(fs.readFileSync(path.join(__dirname, '..', 'presence.js'), 'utf8'), sb);
     sb.window.PresenceUI.onCloudData(dev);
-    return { label: els.presenceLabel.textContent, cls: els.presenceBadge.className, banner: els.presenceStaleBanner.style.display, blocked: blocked[blocked.length - 1] };
+    return { age: els.presenceAge.textContent, title: els.presenceBadge.title, label: els.presenceLabel.textContent, cls: els.presenceBadge.className, banner: els.presenceStaleBanner.style.display, blocked: blocked[blocked.length - 1] };
   }
   const nowIso = new Date().toISOString();
   const old = new Date(Date.now() - 1800 * 1000).toISOString();
@@ -67,6 +67,8 @@ t('onCloudData ไม่ใช้ updated_at ตัดสินสถานะ (
   const b = run({ updated_at: nowIso });             // ไม่มีคอลัมน์ last_seen_at
   assert.strictEqual(b.label, 'ยังไม่เคยเห็นบอร์ด');
   assert.ok(b.cls.includes('presence-never'));
+  assert.strictEqual(b.age, '');                      // ไม่แสดงศัพท์เทคนิคบนหัวหน้า
+  assert.ok(b.title.includes('last_seen_at'));        // คำอธิบายอยู่ใน tooltip
   assert.strictEqual(b.banner, 'none');
   assert.strictEqual(b.blocked, '');                 // ไม่ปิดปุ่มมาร์ก
   const c = run({ updated_at: old, last_seen_at: null });

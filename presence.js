@@ -101,7 +101,8 @@
 
     var res = presenceOf(lastSeen, Date.now());
     if (res.status === 'never') {
-      setPill('never', STATUS_LABEL.never, NEVER_NOTE);
+      setPill('never', STATUS_LABEL.never, '');
+      els.badge.title = NEVER_NOTE; // คำอธิบายทางเทคนิคอยู่ใน tooltip ไม่แสดงบนหัวหน้า
       showStale(false);
       blockMarking('');
       return;
